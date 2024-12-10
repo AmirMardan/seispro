@@ -156,8 +156,9 @@ def inverse_fourier_transform_time(data_fx, time_window_len, n_times):
     time_window = torch.hann_window(time_window_len, dtype=dtype, device=device)
     data_fx = data_fx.permute(0, 3, 1, 2, 4)
     data_fx = data_fx.reshape(batch_size * n_traces, n_freqs, n_time_windows, 2)
+    data_fx_complex = torch.view_as_complex(data_fx)
     data = torch.istft(
-        data_fx,
+        data_fx_complex,
         time_window_len,
         hop_length=time_window_len // 2,
         window=time_window,
@@ -201,8 +202,10 @@ def fourier_transform_time(data, time_window_len):
         time_window_len,
         hop_length=time_window_len // 2,
         window=time_window,
-        return_complex=False,
+        return_complex=True
     )
+    # to avoid deprecation warning
+    data_fx = torch.view_as_real(data_fx)
     n_freqs, n_time_windows = data_fx.shape[1:3]
     data_fx = data_fx.reshape(batch_size, n_traces, n_freqs, n_time_windows, 2)
     data_fx = data_fx.permute(0, 2, 3, 1, 4)
